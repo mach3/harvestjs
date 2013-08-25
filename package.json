@@ -1,0 +1,16 @@
+{
+    "name": "harvestjs",
+    "version": "0.9.0",
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/mach3/harvestjs"
+    },
+    "dependencies": {
+        "grunt": "~0.4",
+        "uglify-js": "~2"
+    },
+    "devDependencies": {
+        "grunt-contrib-uglify": "*",
+        "grunt-contrib-concat": "*"
+    }
+}

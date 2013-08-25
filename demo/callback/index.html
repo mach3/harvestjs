@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Callback Demo</title>
+    <script src="../../src/harvest.js" data-path="js/"></script>
+</head>
+<body>
+    <h1>Callback Demo</h1>
+    <ul id="log"></ul>
+    <script>
+
+    var log = function(msg){
+        var li = document.createElement("li");
+        li.innerHTML = msg;
+        document.getElementById("log").appendChild(li);
+    };
+
+    harvest("mod/foo.js", "mod/bar.js", "mod/baz.js", function(){
+        log("foo() returns " + foo());
+        log("bar() returns " + bar());
+        log("baz() returns " + baz());
+    });
+    
+    </script>
+</body>
+</html>
