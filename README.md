@@ -32,7 +32,7 @@ This will load "js/init.js" immidiately, and load "js/main.js" when DOM is ready
 
 ### harvest()
 
-You may use `harvest()` function to load sub-resources in init.js/common.js/main.js.
+You may use `harvest()` function to load sub-resources in "init.js" or "main.js"
 
 ```javascript
 // main.js
@@ -79,8 +79,10 @@ grunt.initConfig({
             banner: "/* <%= grunt.format.today('yyyy-mm-dd') %> */",
             uglify: {}
         },
-        files: {
-            "js/main.unified.js": "js/main.js"
+        dist: {
+            files: {
+                "js/main.unified.js": "js/main.js"
+            }
         }
     }
 });
