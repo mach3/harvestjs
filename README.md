@@ -13,22 +13,19 @@ Now debugging...
 
 ### Loading
 
-This will load "js/init.js" immidiately, and load "js/main.js" when DOM is ready.
+This will load "js/main.js" when DOM is ready.
 
 ```html
 <script src="vendors/harvest.js" 
     data-path="js/" 
-    data-init="init.js" 
     data-main="main.js"
     ></script>
 ```
 
-- *data-init* : Start loading the scripts right now  
-  (comma/space separated string for multiple sources)
-- *data-main* : Start loading the scripts when DOM is ready  
-  (comma/space separated string for multiple sources)
 - *data-path* : The path to script's root directory  
   (If ommitted, set as the path where harvest.js is saved)
+- *data-main* : Start loading the scripts when DOM is ready  
+  (comma/space separated string for multiple sources)
 
 
 ### harvest()

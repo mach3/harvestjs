@@ -17,6 +17,7 @@
     };
 
     harvest("mod/foo.js", "mod/bar.js", "mod/baz.js", function(){
+        console.log("--loaded--");
         log("foo() returns " + foo());
         log("bar() returns " + bar());
         log("baz() returns " + baz());

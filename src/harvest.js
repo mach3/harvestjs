@@ -6,66 +6,188 @@
 	 */
 	var ns = win._harvest = {};
 
-	/**
-	 * Loader
-	 * ------
-	 */
-	ns.el = null; // Self script element
-	ns.path = null; // Path to the script root
-	ns.asset = null; // Asset collection
+	ns.path = null; // path to script root directory
 
 	/**
-	 * Initialize harvest object
-	 * - set element, path, assets, and call load
+	 * Assets class
+	 * ------------
 	 */
-	ns.initialize = function(){
-		var my, el, path, asset;
+	ns.Assets = function(){
+		this.items = [];
+		this.nodes = [];
+	};
 
-		my = this;
-		// Get self script element
-		el = this.el = this._last("script");
-		// Get path info
-		path = this._data(el, "path");
-		if(typeof path !== "string"){
-			path = el.src.replace(/(\?|#).+?$|[^\/]+?$/g, "");
-		}
-		this.path = path;
-		// Get asset
-		asset = {
-			"init": [],
-			"main": []
+	(function(){
+
+		/**
+		 * Attributes:
+		 * - supportAsync:Boolean Script element's "async" is supported or not
+		 * - head:HTMLHeadElement
+		 * - items:Array File names to load
+		 * - nodes:Array Script elements to be appended
+		 * - count:Integer Count of resources
+		 * - callback:Function Callback function for completing to load
+		 */
+		this.supportAsync = doc.createElement("script").async !== undefined;
+		this.head = doc.getElementsByTagName("head")[0];
+		this.items = null;
+		this.nodes = null;
+		this.count = 0;
+		this.callback = null;
+
+		/**
+		 * Add files to load
+		 * @param Array files
+		 */
+		this.add = function(files){
+			var my = this;
+			ns._each(files, function(value){
+				my.items.push(value);
+			});
+			this.count = this.items.length;
+			return this;
 		};
-		this._each(asset, function(files, key){
-			var data = my._data(el, key);
-			if(! data){ return; }
-			my._each(data.split(/\s|,/), function(name){
-				if(! name){ return; }
-				files.push(name);
+
+		/**
+		 * Set callback function for complete
+		 * @param Function callback
+		 */
+		this.onComplete = function(callback){
+			if(ns._isFunction(callback)){
+				this.callback = callback;
+			}
+		};
+
+		/**
+		 * Start to load
+		 * Create script element, append them if async supported, wait for getting ready if not
+		 */
+		this.load = function(){
+			var my = this;
+			ns._each(this.items, function(url){
+				var el = doc.createElement("script");
+				ns._on(el, "load", ns._bind(my._process, my, el));
+				ns._on(el, "readystatechange", ns._bind(my._process, my, el));
+				el.type = "text/javascript";
+				el.src = url;
+				if(my.supportAsync){
+					el.async = false;
+					my.head.appendChild(el);
+				}
+				my.nodes.push(el);
 			});
-		});
-		this.asset = asset;
-		// load them
-		if(asset.init.length){
-			this.load(asset.init);
-		}
-		if(asset.main.length){
-			this._onReady(function(){
-				my.load(asset.main);
-			});
-		}
-	};
+			return this;
+		};
+
+		/**
+		 * Handler for readystatechange and load event of script element
+		 * If all resources seem to be loaded, call _complete()
+		 */
+		this._process = function(el, e){
+			if(el._loaded){ return; }
+			// on IE10, script is not ready when readyState == "loaded"
+			var loaded = (this.supportAsync && e.type === "load")
+			|| (! this.supportAsync && el.readyState === "loaded");
+			if(loaded){
+				el._loaded = true;
+				this.count -= 1;
+				if(! this.count){ this._complete(); }
+			}
+		};
+
+		/**
+		 * Complete the process
+		 * If async not supported, append all script elements
+		 * If callback is set, call it
+		 */
+		this._complete = function(){
+			var my = this;
+			if(! this.supportAsync){
+				ns._each(this.nodes, function(el){
+					my.head.appendChild(el);
+				});
+			}
+			if(ns._isFunction(this.callback)){
+				this.callback(this);
+			}
+		};
+
+	}).call(ns.Assets.prototype);
+
 
 	/**
-	 * Load resources in data-init and data-ready
-	 * @param Array files
+	 * Loader Object
+	 * -------------
 	 */
-	ns.load = function(files){
-		(new this.Harvest()).load(files);
+	ns.loader = {
+
+		/**
+		 * Attributes:
+		 * - Script element of my own
+		 */
+		el: null,
+
+		/**
+		 * Initialize from script element
+		 * Get asset files and path from data-* attributes
+		 * If data-main has some value, load them
+		 * If data-path has some value, set it as script root directory, 
+		 * if not, use harvest.js's path
+		 */
+		initialize: function(){
+			var el, path, files;
+			el = ns._last("script");
+			path = ns._data(el, "path");
+			if(typeof path !== "string"){
+				path = el.src.replace(/(\?|#).+?$|[^\/]+?$/g, "");
+			}
+			ns.path = path;
+			files = this.getAssets(el, "main");
+			files = this.parse(files);
+			if(files.length){
+				ns._onReady(ns._bind(this.load, this, files));
+			}
+		},
+
+		/**
+		 * Get asset file names from data-[name]
+		 * @param HTMLScriptElement el
+		 * @param String name
+		 */
+		getAssets: function(el, name){
+			var data = ns._data(el, name);
+			if(data){ return data.split(/\s|,/); }
+			return [];
+		},
+
+		/**
+		 * Parse the file names
+		 * Remove empty and add path
+		 */
+		parse: function(files){
+			var r = [];
+			ns._each(files, function(name){
+				if(name){ r.push(ns.path + name); }
+			});
+			return r;
+		},
+
+		/**
+		 * Load script files using Assets class
+		 * @param Array files
+		 * @param Function callback (optional)
+		 */
+		load: function(files, callback){
+			var assets = new ns.Assets();
+			assets.add(files);
+			assets.onComplete(callback);
+			assets.load();
+		}
 	};
 
 	/**
-	 * Utilities
-	 * ---------
+	 * Utils
+	 * -----
 	 */
 
 	/**
@@ -102,16 +224,20 @@
 	};
 
 	/**
-	 * Wrapper and fallback for Function.prototype.bind
+	 * Set function scope like Function.prototype.bind
+	 * This can pass some arguments (they are prepended to arguments which is passed to callback)
 	 * @param Function func
 	 * @param Object scope
+	 * @param Mixed arg1, arg2,...
+	 * @return Function
 	 */
-	ns._bind = function(func, scope){
-		if(Function.prototype.bind){
-			return func.bind(scope);
-		}
+	ns._bind = function(/* func, scope, arg1, arg2 */){
+		var args, func, scope;
+		args = [].slice.call(arguments);
+		func = args.shift();
+		scope = args.shift();
 		return function(){
-			func.apply(scope, arguments);
+			func.apply(scope, args.concat([].slice.call(arguments)));
 		};
 	};
 
@@ -120,7 +246,7 @@
 	 * @param Function callback
 	 */
 	ns._onReady = function(callback){
-		var process = function(e){
+		var process = function(){
 			if(callback._done){
 				return;
 			}
@@ -141,103 +267,36 @@
 	 * @param String name
 	 * @param Function func
 	 */
-	ns._on = function(el, name, func){
-		if(el.addEventListener){
-			return el.addEventListener(name, func, false);
-		}
-		if(el.attachEvent){
-			return el.attachEvent("on" + name, func);
-		}
+	ns._on = function(el, name, callback){
+		if(el.addEventListener){ return el.addEventListener(name, callback, false); }
+		if(el.attachEvent){ return el.attachEvent("on" + name, callback); }
 	};
 
 	/**
-	 * Harvest class
-	 * -------------
+	 * Return object is function or not
+	 * @param Mixed o
+	 * @return Boolean
 	 */
-	ns.Harvest = function(){
-		this.path = ns.path;
+	ns._isFunction = function(o){
+		return typeof o === "function";
 	};
 
-	(function(){
-
-		this.head = ns._last("head"); // HTMLHeadElement to append script
-		this.path = ""; // Path to the script root
-		this.count = 0; // Number of resources
-		this.callback = null; // Callback for when all scripts loaded
-
-		/**
-		 * Load script files
-		 * Path of files must be relative to _harvest.path ( = this.path)
-		 * @param Array files
-		 */
-		this.load = function(files){
-			var i, count;
-			this.count = count = files.length;
-			for(i=0; i<count; i++){
-				this.appendScript(this.path + files[i]);
-			}
-		};
-
-		/**
-		 * Append script element, add event listener for them
-		 * @param String url
-		 */
-		this.appendScript = function(url){
-			var el = doc.createElement("script");
-			el.setAttribute("type", "text/javascript");
-			el.setAttribute("src", url);
-			el.async = false;
-			ns._on(el, "load", ns._bind(this._process, this));
-			ns._on(el, "readystatechange", ns._bind(this._process, this));
-			this.head.appendChild(el);
-		};
-
-		/**
-		 * Handler for script element's load/readystate
-		 * When all script loaded, run callback
-		 */
-		this._process = function(e){
-			var el = e.srcElement;
-			if(el._loaded){
-				return;
-			}
-			if(e.type !== "load" && ! /^(complete|loaded)$/.test(el.readyState)){
-				return;
-			}
-			el._loaded = true;
-			if(! -- this.count && typeof this.callback === "function"){
-				this.callback();
-			}
-		};
-
-	}).call(ns.Harvest.prototype);
-
-
 	/**
-	 * API
-	 * ---
+	 * Interface
 	 */
-
-	/**
-	 * Import script files 
-	 * If you pass function as last argument, set callback it for their all loaded
-	 * @param String file (multiple)
-	 * @param Function callback (optional)
-	 */
-	win.harvest = function(/* file1, file2, file3, [callback] */){
-		var args, obj;
+	win.harvest = function(){
+		var args, callback;
 		args = [].slice.call(arguments);
-		obj = new ns.Harvest();
-		if(typeof args[args.length - 1] === "function"){
-			obj.callback = args.pop();
+		if(ns._isFunction(args[args.length - 1])){
+			callback = args.pop();
 		}
-		obj.load(args);
+		ns.loader.load(ns.loader.parse(args), callback);
 	};
 
 	/**
 	 * Initialize
 	 * ----------
 	 */
-	ns.initialize();
+	ns.loader.initialize();
 
 }(window, document));
