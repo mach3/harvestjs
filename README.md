@@ -1,8 +1,6 @@
-# [Deprecated] HarvestJS
+# HarvestJS (working)
 
 Simple script loader and compiler
-
-Now debugging...
 
 ## Feature
 
