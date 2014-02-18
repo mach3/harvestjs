@@ -1,6 +1,10 @@
 
 # Change Log
 
+## Latest
+
+- Fix bug in IE8 (readyStateChange not fired)
+
 ## 0.9.1 (2013-08-28)
 
 - Rewrite all (!!)

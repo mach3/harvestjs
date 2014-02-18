@@ -7,6 +7,7 @@
 	var ns = win._harvest = {};
 
 	ns.path = null; // path to script root directory
+	ns.stack = []; // stack of script elements
 
 	/**
 	 * Assets class
@@ -75,6 +76,8 @@
 					my.head.appendChild(el);
 				}
 				my.nodes.push(el);
+				// IE8 needs the element to be refered to trigger the events
+				ns.stack.push(el);
 			});
 			return this;
 		};
