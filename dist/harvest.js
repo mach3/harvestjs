@@ -3,7 +3,7 @@
  * ---------
  * Simple script loader
  * 
- * @version 0.9.1
+ * @version 0.9.2
  * @author mach3 <http://github.com/mach3>
  * @url http://github.com/mach3/harvestjs
  * @license MIT License
