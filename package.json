@@ -1,16 +1,36 @@
 {
-    "name": "harvestjs",
-    "version": "0.9.2",
-    "repository": {
-        "type": "git",
-        "url": "http://github.com/mach3/harvestjs"
-    },
-    "dependencies": {
-        "grunt": "~0.4",
-        "uglify-js": "~2"
-    },
-    "devDependencies": {
-        "grunt-contrib-uglify": "*",
-        "grunt-contrib-concat": "*"
-    }
+  "name": "harvestjs",
+  "version": "0.9.2",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/mach3/harvestjs"
+  },
+  "dependencies": {
+    "grunt": "~0.4",
+    "uglify-js": "~2",
+    "underscore": "~1.6"
+  },
+  "devDependencies": {
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.3.2",
+    "grunt-contrib-watch": "~0.5"
+  },
+  "readmeFilename": "README.md",
+  "gitHead": "173a916240f33418f6776fb2b966c4f2cc443b4f",
+  "description": "Simple script loader and compiler",
+  "bugs": {
+    "url": "https://github.com/mach3/harvestjs/issues"
+  },
+  "main": "lib/harvest.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "loader",
+    "grunt",
+    "task",
+    "concat"
+  ],
+  "author": "mach3",
+  "license": "MIT"
 }

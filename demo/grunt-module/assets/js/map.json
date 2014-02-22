@@ -1,0 +1,13 @@
+{
+    "watch": ["*/**/*.js"],
+    "files": {
+        "mod.js": [
+            "mod/bar.js",
+            "mod/baz.js",
+            "mod/foo.js"
+        ],
+        "main.js": [
+            "app/init.js"
+        ]
+    }
+}

@@ -5,7 +5,8 @@ Simple script loader and compiler
 ## Feature
 
 - Multiple script loader
-- Compiler to concat and minify scritps
+- Compiler to concat and minify scritps for grunt
+- Compile helper module for grunt
 
 ## Script Loader
 
@@ -58,7 +59,7 @@ harvest(
 
 But compiler doesn't support unifying the script with callback.
 
-## Compiler
+## Compiler (Grunt Task)
 
 Compiler as grunt task will help you to concat or minify scripts.
 
@@ -87,9 +88,71 @@ grunt.initConfig({
 
 ### Options
 
-- path:String ("") = The script root path
-- banner:String ("") = Banner string to be prepended to unified script
-- uglify:Object ({}) = UglifyJS2's compress options (Pass `false` not to minify script)
+- **path:String** ("") - The script root path
+- **banner:String** ("") - Banner string to be prepended to unified script
+- **uglify:Object** ({}) - UglifyJS2's compress options (Pass `false` not to minify script)
+
+
+## Helper (Grunt Module)
+
+Grunt module will help you to configure grunt-contib-concat, grunt-contrib-uglify, grunt-contrib-watch
+or some tasks which accept 'files' section.
+You may just pass the JSON file path which includes information about unification.
+
+
+This feature doesn't accept any `harvest()` in sources,
+but just follow settings in JSON passed.
+
+
+```
+var harvest = require("harvestjs");
+var conf = harvest.init("assets/js/map.json");
+
+grunt.initConfig({
+    concat: {
+        dist: {
+            // files() returns a files object
+            files: harvest.files();
+        }
+    },
+    uglify: {
+        dist: {
+            // suffix() returns a files object with suffix
+            files: harvest.suffix(".min");
+        }
+    },
+    watch: {
+        dist: {
+            // watch() returns an array of files to watch
+            files: harvest.watch(),
+            tasks: ["concat", "uglify"]
+        }
+    }
+});
+``` 
+
+- **init(json_path:String):Harvest** - Get instance by JSON path
+- **files():Object** - Returns a files object
+- **suffix(suffix:String):Object** - Returns a files object with suffix
+- **watch():Array** - Returns a files array for watch task
+
+
+JSON may be like below.
+
+```
+{
+    "watch": ["*/**/*.js"],
+    "files": {
+        "vendors.js": ["../vendors/jquery/jquery.js", "../vendors/underscore/underscore.js"],
+        "lib.js": ["lib/foo.js", "lib/bar.js", "lib/baz.js"],
+        "main.js": ["app/init.js"]
+    }
+}
+```
+
+All paths in JSON must be relative to JSON file itself.
+Harvest resolve them to relative paths to the project root (Gruntfile.js saved).
+
 
 
 

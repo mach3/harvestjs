@@ -3,6 +3,10 @@
 
 ## Latest
 
+- Add helper feature as grunt module
+
+## 0.9.2 (2014-02-18)
+
 - Fix bug in IE8 (readyStateChange not fired)
 
 ## 0.9.1 (2013-08-28)
